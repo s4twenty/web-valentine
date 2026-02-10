@@ -36,8 +36,6 @@
         font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     }
 
-    /* --- UI COMPONENTS --- */
-
     .card {
         background: var(--glass-bg);
         backdrop-filter: blur(16px);
@@ -79,7 +77,6 @@
         font-weight: 500;
     }
 
-    /* --- HEART ANIMATION --- */
     .heart-container {
         position: relative;
         width: 60px;
@@ -111,19 +108,17 @@
 
     .heart:before { top: -15px; left: 0; }
     .heart:after { left: 15px; top: 0; }
-
-    /* Animation States */
+   
     .anim-float { animation: float 3s ease-in-out infinite; }
     .anim-beat { animation: heartbeat 1.2s infinite; }
     .anim-beat-fast { animation: heartbeat 0.8s infinite; }
 
-    /* --- BUTTONS --- */
     .btn-group {
         display: flex;
         justify-content: center;
         gap: 40px;
         position: relative;
-        min-height: 60px; /* Space reservation */
+        min-height: 60px; 
     }
 
     button {
@@ -150,11 +145,10 @@
     .btn-no {
         background: rgba(255, 255, 255, 0.5);
         color: #777;
-        touch-action: none; /* Critical for custom touch handling */
+        touch-action: none; 
         will-change: transform, left, top;
     }
 
-    /* --- VIEWS --- */
     #teaserView {
         position: absolute;
         width: 100%;
@@ -174,7 +168,6 @@
         margin: 0;
     }
 
-    /* --- CANVAS --- */
     #confetti {
         position: fixed;
         top: 0;
@@ -185,7 +178,6 @@
         z-index: 100;
     }
 
-    /* --- KEYFRAMES --- */
     @keyframes heartbeat {
         0% { transform: rotate(-45deg) scale(1); }
         14% { transform: rotate(-45deg) scale(1.15); }
@@ -199,7 +191,6 @@
         50% { transform: translateY(-10px); }
     }
 
-    /* --- REDUCED MOTION --- */
     @media (prefers-reduced-motion: reduce) {
         .anim-float, .anim-beat, .anim-beat-fast { animation: none; }
         .card, button { transition: none !important; }
@@ -233,18 +224,17 @@
         <div class="heart anim-beat-fast" style="transform: rotate(-45deg) scale(1.2);"></div>
     </div>
     <h1>Yay! ❤️</h1>
-    <p>Best decision ever! See you soon.</p>
+    <p>See you on Valentine's Day.</p>
 </div>
 
 <script>
     (function() {
         'use strict';
 
-        // --- CONFIGURATION ---
         const CONFIG = {
             STORAGE_KEY: 'valentine_decision',
             CONFETTI_DURATION: 7000,
-            PROXIMITY_THRESHOLD: 80, // px
+            PROXIMITY_THRESHOLD: 80, 
             THROTTLE_MS: 50,
             SAFE_MARGIN: 20
         };
@@ -255,13 +245,11 @@
             SUCCESS: 'SUCCESS'
         };
 
-        // --- STATE MANAGEMENT ---
         let currentState = STATE.TEASER;
         let bounds = { w: window.innerWidth, h: window.innerHeight };
         let isReducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
         let lastInputTime = 0;
         
-        // Elements
         const elements = {
             teaser: document.getElementById('teaserView'),
             mainCard: document.getElementById('mainCard'),
@@ -273,17 +261,14 @@
         
         const ctx = elements.canvas.getContext('2d');
 
-        // --- CORE LOGIC ---
 
         function updateState(newState) {
             currentState = newState;
             
-            // Reset Views
             elements.teaser.classList.remove('active');
             elements.mainCard.classList.remove('active');
             elements.successCard.classList.remove('active');
 
-            // Apply New State
             if (newState === STATE.TEASER) {
                 elements.teaser.classList.add('active');
             } 
@@ -292,7 +277,7 @@
             } 
             else if (newState === STATE.SUCCESS) {
                 elements.successCard.classList.add('active');
-                elements.mainCard.style.display = 'none'; // Prevent interaction
+                elements.mainCard.style.display = 'none'; 
                 localStorage.setItem(CONFIG.STORAGE_KEY, 'true');
                 startConfetti();
             }
@@ -305,10 +290,9 @@
             elements.canvas.height = bounds.h;
         }
 
-        // --- "NO" BUTTON PHYSICS ---
 
         function getSafePosition(btnW, btnH) {
-            // Try to find a spot that doesn't overlap with the main card
+
             const cardRect = elements.mainCard.getBoundingClientRect();
             let newX, newY;
             let isSafe = false;
@@ -318,8 +302,6 @@
                 newX = Math.random() * (bounds.w - btnW - CONFIG.SAFE_MARGIN * 2) + CONFIG.SAFE_MARGIN;
                 newY = Math.random() * (bounds.h - btnH - CONFIG.SAFE_MARGIN * 2) + CONFIG.SAFE_MARGIN;
 
-                // Collision detection (AABB)
-                // Expand card rect slightly for buffer
                 if (
                     newX < cardRect.right + 10 &&
                     newX + btnW > cardRect.left - 10 &&
@@ -338,7 +320,6 @@
         function escapeButton() {
             if (currentState !== STATE.ASK) return;
             
-            // If reduced motion, just disable the button effectively without flying around excessively
             if (isReducedMotion) {
                 elements.btnNo.style.opacity = '0.5';
                 elements.btnNo.style.pointerEvents = 'none';
@@ -348,10 +329,9 @@
             const btn = elements.btnNo;
             const rect = btn.getBoundingClientRect();
 
-            // Switch to fixed positioning if not already
             if (btn.style.position !== 'fixed') {
                 btn.style.position = 'fixed';
-                btn.style.width = rect.width + 'px'; // Maintain layout width
+                btn.style.width = rect.width + 'px'; 
                 btn.style.left = '0';
                 btn.style.top = '0';
             }
@@ -359,14 +339,12 @@
             const pos = getSafePosition(rect.width, rect.height);
             const rot = (Math.random() * 20) - 10;
 
-            // GPU Transform
             btn.style.transform = `translate3d(${pos.x}px, ${pos.y}px, 0) rotate(${rot}deg)`;
         }
 
         function checkProximity(x, y) {
             if (currentState !== STATE.ASK || isReducedMotion) return;
 
-            // Throttle
             const now = Date.now();
             if (now - lastInputTime < CONFIG.THROTTLE_MS) return;
             lastInputTime = now;
@@ -375,7 +353,6 @@
             const centerX = rect.left + rect.width / 2;
             const centerY = rect.top + rect.height / 2;
             
-            // Euclidian distance
             const dist = Math.sqrt(Math.pow(x - centerX, 2) + Math.pow(y - centerY, 2));
 
             if (dist < CONFIG.PROXIMITY_THRESHOLD) {
@@ -383,7 +360,6 @@
             }
         }
 
-        // --- CONFETTI SYSTEM ---
         
         let confettiFrameId = null;
         let confettiStartTime = null;
@@ -406,11 +382,9 @@
         function startConfetti() {
             if (isReducedMotion) return;
             
-            // Reset
             particles.length = 0;
             confettiStartTime = Date.now();
             
-            // Initial burst
             for (let i = 0; i < 80; i++) particles.push(createParticle());
             
             if (confettiFrameId) cancelAnimationFrame(confettiFrameId);
@@ -421,7 +395,6 @@
             const now = Date.now();
             const elapsed = now - confettiStartTime;
 
-            // Lifecycle End
             if (elapsed > CONFIG.CONFETTI_DURATION) {
                 ctx.clearRect(0, 0, bounds.w, bounds.h);
                 cancelAnimationFrame(confettiFrameId);
@@ -430,7 +403,6 @@
 
             ctx.clearRect(0, 0, bounds.w, bounds.h);
 
-            // Add particles dynamically
             if (particles.length < 150 && Math.random() > 0.9) {
                 particles.push(createParticle());
             }
@@ -448,7 +420,6 @@
                 ctx.fillRect(-p.size / 2, -p.size / 2, p.size, p.size);
                 ctx.restore();
 
-                // Recycle
                 if (p.y > bounds.h) {
                     p.y = -10;
                     p.x = Math.random() * bounds.w;
@@ -458,9 +429,6 @@
             confettiFrameId = requestAnimationFrame(loopConfetti);
         }
 
-        // --- INPUT HANDLERS ---
-
-        // Global move listeners for proximity (Active only in ASK state via guard)
         document.addEventListener('mousemove', (e) => {
             checkProximity(e.clientX, e.clientY);
         }, { passive: true });
@@ -471,15 +439,13 @@
             }
         }, { passive: true });
 
-        // Button No specific handlers
         elements.btnNo.addEventListener('mouseenter', escapeButton);
         elements.btnNo.addEventListener('touchstart', (e) => {
-            e.preventDefault(); // Prevent click
+            e.preventDefault();
             escapeButton();
         }, { passive: false });
-        elements.btnNo.addEventListener('focus', escapeButton); // Accessibility trap
+        elements.btnNo.addEventListener('focus', escapeButton); 
 
-        // Yes Action
         function confirmYes() {
             if (currentState === STATE.SUCCESS) return;
             updateState(STATE.SUCCESS);
@@ -487,23 +453,20 @@
 
         elements.btnYes.addEventListener('click', confirmYes);
         elements.btnYes.addEventListener('touchend', (e) => {
-            e.preventDefault(); // Prevent ghost clicks
+            e.preventDefault(); 
             confirmYes();
         });
 
-        // Keyboard Shortcut
         document.addEventListener('keydown', (e) => {
             if (currentState === STATE.ASK && (e.key.toLowerCase() === 'y')) {
                 confirmYes();
             }
         });
 
-        // Resize
         window.addEventListener('resize', handleResize, { passive: true });
 
-        // --- INIT ---
         function init() {
-            handleResize(); // Setup canvas size
+            handleResize(); 
             
             const hasSaidYes = localStorage.getItem(CONFIG.STORAGE_KEY);
             
@@ -511,7 +474,7 @@
                 updateState(STATE.SUCCESS);
             } else {
                 updateState(STATE.TEASER);
-                // Timer to transition to ASK
+
                 setTimeout(() => {
                     if (currentState === STATE.TEASER) {
                         updateState(STATE.ASK);
